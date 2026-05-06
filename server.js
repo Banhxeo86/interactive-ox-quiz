@@ -10,13 +10,15 @@ const publicDir = path.join(__dirname, "public");
 const PORT = process.env.PORT || 3000;
 const rooms = new Map();
 const clientsByRoom = new Map();
+const MAX_AVATARS = 30;
 
 function createRoomState() {
   return {
     currentQuestion: "지구는 둥글다?",
     counts: { O: 0, X: 0 },
     isAcceptingAnswers: false,
-    participantState: new Map()
+    participantState: new Map(),
+    nextAvatarIndex: 0
   };
 }
 
@@ -144,14 +146,20 @@ const server = http.createServer(async (req, res) => {
       if (answer !== "O" && answer !== "X") return sendJson(res, 400, { ok: false });
       if (!participantId) return sendJson(res, 400, { ok: false, reason: "missing_participant" });
 
-      const previousAnswer = room.participantState.get(participantId)?.lastAnswer || null;
+      const existingState = room.participantState.get(participantId);
+      const previousAnswer = existingState?.lastAnswer || null;
+      const avatarIndex = existingState?.avatarIndex ?? room.nextAvatarIndex;
+      if (!existingState) {
+        room.nextAvatarIndex = (room.nextAvatarIndex + 1) % MAX_AVATARS;
+      }
+
       if (previousAnswer !== answer) {
         if (previousAnswer === "O" || previousAnswer === "X") {
           room.counts[previousAnswer] = Math.max(0, room.counts[previousAnswer] - 1);
         }
         room.counts[answer] += 1;
       }
-      room.participantState.set(participantId, { lastAnswer: answer });
+      room.participantState.set(participantId, { lastAnswer: answer, avatarIndex });
 
       const targetX = answer === "O"
         ? 16 + Math.random() * 28
@@ -160,6 +168,7 @@ const server = http.createServer(async (req, res) => {
       broadcast(roomCode, "counts", room.counts);
       broadcast(roomCode, "animate", {
         participantId,
+        avatarIndex,
         answer,
         previousAnswer,
         targetX,

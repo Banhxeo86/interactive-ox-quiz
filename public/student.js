@@ -33,7 +33,19 @@ buttons.forEach((btn) => {
     });
 
     if (!response.ok) {
-      sendStatus.textContent = "전송 실패, 다시 시도해 주세요";
+      let reason = "unknown";
+      try {
+        const body = await response.json();
+        reason = body.reason || "unknown";
+      } catch {}
+
+      if (reason === "closed") {
+        sendStatus.textContent = "응답 시간이 마감됐어요";
+      } else if (reason === "room_not_found") {
+        sendStatus.textContent = "방이 종료되었어요. 다시 입장해 주세요";
+      } else {
+        sendStatus.textContent = "전송 실패, 다시 시도해 주세요";
+      }
       return;
     }
 
@@ -85,6 +97,10 @@ function connectEvents() {
       btn.disabled = !next;
     });
   });
+
+  events.onerror = () => {
+    sendStatus.textContent = "연결이 잠시 끊겼어요. 잠시 후 다시 시도해 주세요";
+  };
 }
 
 function setQuizVisible(visible) {
