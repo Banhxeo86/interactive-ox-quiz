@@ -174,7 +174,11 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { ok: true });
     }
 
-    const pathname = url.pathname === "/" ? "/teacher.html" : url.pathname;
+    let pathname = url.pathname;
+    if (pathname === "/") pathname = "/teacher";
+    if (pathname === "/teacher") pathname = "/teacher.html";
+    if (pathname === "/student") pathname = "/student.html";
+
     const safePath = path.normalize(path.join(publicDir, pathname));
     if (!safePath.startsWith(publicDir) || !existsSync(safePath)) {
       res.writeHead(404);
