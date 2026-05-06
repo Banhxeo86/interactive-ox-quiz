@@ -44,8 +44,12 @@ buttons.forEach((btn) => {
 });
 
 async function joinRoom() {
-  const inputCode = roomCodeInput.value.toUpperCase().trim();
-  if (!inputCode) return;
+  const inputCode = roomCodeInput.value.replace(/\D/g, "").slice(0, 6);
+  roomCodeInput.value = inputCode;
+  if (inputCode.length !== 6) {
+    sendStatus.textContent = "방 코드는 숫자 6자리예요";
+    return;
+  }
 
   try {
     const check = await fetch(`/room/exists?roomCode=${encodeURIComponent(inputCode)}`);

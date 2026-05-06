@@ -21,17 +21,15 @@ function createRoomState() {
 }
 
 function generateRoomCode() {
-  const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  for (let i = 0; i < 6; i += 1) {
-    code += letters[Math.floor(Math.random() * letters.length)];
-  }
-  return code;
+  return String(Math.floor(Math.random() * 1000000)).padStart(6, "0");
 }
 
-function getOrCreateRoom(roomCode) {
-  if (!rooms.has(roomCode)) rooms.set(roomCode, createRoomState());
-  return rooms.get(roomCode);
+function normalizeRoomCode(value) {
+  return String(value || "").trim();
+}
+
+function isValidRoomCode(roomCode) {
+  return /^\d{6}$/.test(roomCode);
 }
 
 function sendJson(res, statusCode, payload) {
@@ -74,13 +72,13 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === "GET" && url.pathname === "/room/exists") {
-      const roomCode = (url.searchParams.get("roomCode") || "").toUpperCase().trim();
+      const roomCode = normalizeRoomCode(url.searchParams.get("roomCode"));
       return sendJson(res, 200, { ok: true, exists: rooms.has(roomCode) });
     }
 
     if (req.method === "GET" && url.pathname === "/events") {
-      const roomCode = (url.searchParams.get("roomCode") || "").toUpperCase().trim();
-      if (!roomCode || !rooms.has(roomCode)) {
+      const roomCode = normalizeRoomCode(url.searchParams.get("roomCode"));
+      if (!isValidRoomCode(roomCode) || !rooms.has(roomCode)) {
         return sendJson(res, 404, { ok: false, reason: "room_not_found" });
       }
 
@@ -107,8 +105,8 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/teacher/question") {
       const body = await readBody(req);
-      const roomCode = (body.roomCode || "").toUpperCase().trim();
-      if (!rooms.has(roomCode)) return sendJson(res, 404, { ok: false, reason: "room_not_found" });
+      const roomCode = normalizeRoomCode(body.roomCode);
+      if (!isValidRoomCode(roomCode) || !rooms.has(roomCode)) return sendJson(res, 404, { ok: false, reason: "room_not_found" });
       if (typeof body.question !== "string") return sendJson(res, 400, { ok: false });
       const room = rooms.get(roomCode);
 
@@ -124,8 +122,8 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/teacher/status") {
       const body = await readBody(req);
-      const roomCode = (body.roomCode || "").toUpperCase().trim();
-      if (!rooms.has(roomCode)) return sendJson(res, 404, { ok: false, reason: "room_not_found" });
+      const roomCode = normalizeRoomCode(body.roomCode);
+      if (!isValidRoomCode(roomCode) || !rooms.has(roomCode)) return sendJson(res, 404, { ok: false, reason: "room_not_found" });
       if (typeof body.isAcceptingAnswers !== "boolean") return sendJson(res, 400, { ok: false });
       const room = rooms.get(roomCode);
 
@@ -136,8 +134,8 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/student/answer") {
       const body = await readBody(req);
-      const roomCode = (body.roomCode || "").toUpperCase().trim();
-      if (!rooms.has(roomCode)) return sendJson(res, 404, { ok: false, reason: "room_not_found" });
+      const roomCode = normalizeRoomCode(body.roomCode);
+      if (!isValidRoomCode(roomCode) || !rooms.has(roomCode)) return sendJson(res, 404, { ok: false, reason: "room_not_found" });
       const room = rooms.get(roomCode);
       if (!room.isAcceptingAnswers) return sendJson(res, 403, { ok: false, reason: "closed" });
 
@@ -146,12 +144,19 @@ const server = http.createServer(async (req, res) => {
       if (answer !== "O" && answer !== "X") return sendJson(res, 400, { ok: false });
       if (!participantId) return sendJson(res, 400, { ok: false, reason: "missing_participant" });
 
-      room.counts[answer] += 1;
       const previousAnswer = room.participantState.get(participantId)?.lastAnswer || null;
+      if (previousAnswer !== answer) {
+        if (previousAnswer === "O" || previousAnswer === "X") {
+          room.counts[previousAnswer] = Math.max(0, room.counts[previousAnswer] - 1);
+        }
+        room.counts[answer] += 1;
+      }
       room.participantState.set(participantId, { lastAnswer: answer });
 
-      const targetX = answer === "O" ? 41 : 59;
-      const targetY = 50;
+      const targetX = answer === "O"
+        ? 16 + Math.random() * 28
+        : 56 + Math.random() * 28;
+      const targetY = 24 + Math.random() * 52;
       broadcast(roomCode, "counts", room.counts);
       broadcast(roomCode, "animate", {
         participantId,

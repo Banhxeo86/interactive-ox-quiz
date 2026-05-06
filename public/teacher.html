@@ -9,7 +9,7 @@
   <body class="teacher-body">
     <div class="teacher-shell">
       <header class="admin-panel">
-        <h1>실시간 OX 퀴즈</h1>
+        <h1 class="brand-title">OX Live Studio</h1>
         <div class="room-controls">
           <button id="createRoomBtn">새 방 만들기</button>
           <span id="teacherRoomCode" class="room-code">방 코드: -</span>
@@ -31,11 +31,8 @@
       </header>
 
       <main class="canvas-wrap">
-        <div class="target-marker target-o">O</div>
-        <div class="target-marker target-x">X</div>
-        <div id="centerZone" class="center-zone">
-          <div class="center-text">캐릭터 이동 구역</div>
-        </div>
+        <div class="zone zone-o"><span>O</span></div>
+        <div class="zone zone-x"><span>X</span></div>
         <div id="animLayer" class="anim-layer"></div>
       </main>
       <footer class="teacher-footer">© AI-ON 교과연구회</footer>

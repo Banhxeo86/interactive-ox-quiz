@@ -105,7 +105,13 @@ function getOrCreateActor(event) {
 
   const node = document.createElement("div");
   node.className = "character";
-  node.textContent = "🐻";
+  node.innerHTML = `
+    <span class="blob-face">
+      <span class="eye left"></span>
+      <span class="eye right"></span>
+      <span class="mouth"></span>
+    </span>
+  `;
   node.style.left = `${event.startX}%`;
   node.style.top = `${event.startY}%`;
   animLayer.appendChild(node);
@@ -118,7 +124,7 @@ function getOrCreateActor(event) {
 function moveActor(actor, event) {
   if (actor.rafId) cancelAnimationFrame(actor.rafId);
 
-  actor.node.classList.remove("to-o", "to-x", "turn", "bounce");
+  actor.node.classList.remove("to-o", "to-x", "turn", "bounce", "idle");
   actor.node.classList.add(event.answer === "O" ? "to-o" : "to-x");
   if (event.previousAnswer && event.previousAnswer !== event.answer) {
     actor.node.classList.add("turn");
@@ -126,7 +132,7 @@ function moveActor(actor, event) {
 
   const startX = actor.x;
   const startY = actor.y;
-  const duration = 650;
+  const duration = 1500;
   const start = performance.now();
 
   function tick(now) {
@@ -136,7 +142,9 @@ function moveActor(actor, event) {
     const p2 = { x: event.targetX, y: event.targetY };
 
     const x = (1 - t) * (1 - t) * p0.x + 2 * (1 - t) * t * p1.x + t * t * p2.x;
-    const y = (1 - t) * (1 - t) * p0.y + 2 * (1 - t) * t * p1.y + t * t * p2.y;
+    const baseY = (1 - t) * (1 - t) * p0.y + 2 * (1 - t) * t * p1.y + t * t * p2.y;
+    const hop = Math.sin(t * Math.PI * 5) * (1 - t) * 3.1;
+    const y = baseY - hop;
 
     actor.x = x;
     actor.y = y;
@@ -148,6 +156,9 @@ function moveActor(actor, event) {
     } else {
       actor.node.classList.remove("turn");
       actor.node.classList.add("bounce");
+      setTimeout(() => {
+        actor.node.classList.add("idle");
+      }, 220);
     }
   }
 
