@@ -11,21 +11,9 @@ const stopQuizBtn = document.getElementById("stopQuizBtn");
 const sessionStatus = document.getElementById("sessionStatus");
 const actorMap = new Map();
 const AVATARS = [
-  { emoji: "🐰", c1: "#ffd6e8", c2: "#ff7fb2" }, { emoji: "🐻", c1: "#ffe1c5", c2: "#d29a62" },
-  { emoji: "🐼", c1: "#e5ebf5", c2: "#95a3be" }, { emoji: "🐹", c1: "#ffe7ba", c2: "#f0a34d" },
-  { emoji: "🦊", c1: "#ffd7b1", c2: "#f08b4e" }, { emoji: "🐶", c1: "#ffe2cf", c2: "#c98f68" },
-  { emoji: "🐱", c1: "#ffe9bf", c2: "#f6b653" }, { emoji: "🐯", c1: "#ffe2ad", c2: "#f09139" },
-  { emoji: "🐨", c1: "#e3e9f4", c2: "#97a4ba" }, { emoji: "🐸", c1: "#d8f7c9", c2: "#64bd59" },
-  { emoji: "🐵", c1: "#f8dfc0", c2: "#b98552" }, { emoji: "🐧", c1: "#dde6f4", c2: "#7085a8" },
-  { emoji: "🐤", c1: "#fff0a6", c2: "#efb93f" }, { emoji: "🦁", c1: "#ffe3b7", c2: "#d28d3f" },
-  { emoji: "🐮", c1: "#f6eff3", c2: "#c793aa" }, { emoji: "🐷", c1: "#ffd9e5", c2: "#ec82ac" },
-  { emoji: "🐙", c1: "#ffd4f1", c2: "#dd7ec7" }, { emoji: "🦄", c1: "#f4ddff", c2: "#b983f1" },
-  { emoji: "🐳", c1: "#d9efff", c2: "#6aaee7" }, { emoji: "🐬", c1: "#d7f0ff", c2: "#5ca9e1" },
-  { emoji: "🦭", c1: "#dfe8ef", c2: "#8193a8" }, { emoji: "🦉", c1: "#f4e4c7", c2: "#ad8657" },
-  { emoji: "🦝", c1: "#e3e8f0", c2: "#8c98a8" }, { emoji: "🦘", c1: "#ffe1c7", c2: "#d7895f" },
-  { emoji: "🦔", c1: "#f7e6d2", c2: "#b3865e" }, { emoji: "🐢", c1: "#d5f1cc", c2: "#66ad5b" },
-  { emoji: "🐥", c1: "#fff1b4", c2: "#e9b548" }, { emoji: "🐣", c1: "#fff4c2", c2: "#e5bc5a" },
-  { emoji: "🦖", c1: "#d4f2de", c2: "#55ae7b" }, { emoji: "🦕", c1: "#d0eef4", c2: "#53a5b7" }
+  "🐰", "🐻", "🐼", "🐹", "🦊", "🐶", "🐱", "🐯", "🐨", "🐸",
+  "🐵", "🐧", "🐤", "🦁", "🐮", "🐷", "🐙", "🦄", "🐳", "🐬",
+  "🦭", "🦉", "🦝", "🦘", "🦔", "🐢", "🐥", "🐣", "🦖", "🦕"
 ];
 
 let roomCode = "";
@@ -123,9 +111,7 @@ function getOrCreateActor(event) {
   const node = document.createElement("div");
   node.className = "character";
   const avatar = AVATARS[(event.avatarIndex || 0) % AVATARS.length];
-  node.style.setProperty("--avatar-c1", avatar.c1);
-  node.style.setProperty("--avatar-c2", avatar.c2);
-  node.innerHTML = `<span class="animal">${avatar.emoji}</span>`;
+  node.innerHTML = `<span class="animal">${avatar}</span>`;
   node.style.left = `${event.startX}%`;
   node.style.top = `${event.startY}%`;
   animLayer.appendChild(node);
@@ -145,8 +131,10 @@ function moveActor(actor, event) {
 
   const startX = actor.x;
   const startY = actor.y;
-  const duration = 2800;
+  const duration = 4200;
   const start = performance.now();
+  const distance = Math.hypot(event.targetX - startX, event.targetY - startY);
+  const bounceCount = Math.max(10, Math.min(15, Math.round(distance / 4)));
 
   function tick(now) {
     const t = Math.min((now - start) / duration, 1);
@@ -156,7 +144,7 @@ function moveActor(actor, event) {
 
     const x = (1 - t) * (1 - t) * p0.x + 2 * (1 - t) * t * p1.x + t * t * p2.x;
     const baseY = (1 - t) * (1 - t) * p0.y + 2 * (1 - t) * t * p1.y + t * t * p2.y;
-    const hop = Math.sin(t * Math.PI * 5) * (1 - t) * 3.1;
+    const hop = Math.abs(Math.sin(t * Math.PI * bounceCount)) * (2.1 + (1 - t) * 1.7);
     const y = baseY - hop;
 
     actor.x = x;

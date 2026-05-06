@@ -228,29 +228,16 @@ body {
 .character {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
+  width: auto;
+  height: auto;
   z-index: 4;
-  box-shadow: 0 10px 18px #0f172a2c;
-  background: linear-gradient(155deg, var(--avatar-c1), var(--avatar-c2));
-}
-
-.character::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: radial-gradient(circle at 27% 27%, #ffffffb8, transparent 36%);
 }
 
 .animal {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translateX(-50%);
-  font-size: 1.55rem;
-  transform: translate(-50%, -50%);
+  display: block;
+  font-size: 2rem;
+  line-height: 1;
+  filter: drop-shadow(0 6px 8px #0f172a44);
 }
 
 .turn {
