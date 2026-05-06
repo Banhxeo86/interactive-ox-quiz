@@ -134,6 +134,31 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { ok: true });
     }
 
+    if (req.method === "POST" && url.pathname === "/student/join") {
+      const body = await readBody(req);
+      const roomCode = normalizeRoomCode(body.roomCode);
+      if (!isValidRoomCode(roomCode) || !rooms.has(roomCode)) return sendJson(res, 404, { ok: false, reason: "room_not_found" });
+      const room = rooms.get(roomCode);
+
+      const participantId = typeof body.participantId === "string" ? body.participantId : "";
+      if (!participantId) return sendJson(res, 400, { ok: false, reason: "missing_participant" });
+
+      const existingState = room.participantState.get(participantId);
+      const avatarIndex = existingState?.avatarIndex ?? room.nextAvatarIndex;
+      if (!existingState) {
+        room.participantState.set(participantId, { lastAnswer: null, avatarIndex });
+        room.nextAvatarIndex = (room.nextAvatarIndex + 1) % MAX_AVATARS;
+      }
+
+      broadcast(roomCode, "presence", {
+        participantId,
+        avatarIndex,
+        x: 50,
+        y: 50
+      });
+      return sendJson(res, 200, { ok: true, avatarIndex });
+    }
+
     if (req.method === "POST" && url.pathname === "/student/answer") {
       const body = await readBody(req);
       const roomCode = normalizeRoomCode(body.roomCode);

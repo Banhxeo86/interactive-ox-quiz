@@ -5,6 +5,7 @@ const studentQuestion = document.getElementById("studentQuestion");
 const sendStatus = document.getElementById("sendStatus");
 const buttons = document.querySelectorAll(".answer-btn");
 const answerWindowStatus = document.getElementById("answerWindowStatus");
+const leaveRoomBtn = document.getElementById("leaveRoomBtn");
 const participantIdKey = "ox_participant_id";
 const participantId = getOrCreateParticipantId();
 
@@ -14,6 +15,7 @@ let events = null;
 
 setQuizVisible(false);
 joinRoomBtn.addEventListener("click", joinRoom);
+leaveRoomBtn.addEventListener("click", leaveRoom);
 roomCodeInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") joinRoom();
 });
@@ -72,6 +74,11 @@ async function joinRoom() {
     }
     roomCode = inputCode;
     connectEvents();
+    await fetch("/student/join", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ roomCode, participantId })
+    });
     joinCard.style.display = "none";
     setQuizVisible(true);
     sendStatus.textContent = `${roomCode} 방에 입장했어요`;
@@ -107,6 +114,22 @@ function setQuizVisible(visible) {
   studentQuestion.style.display = visible ? "block" : "none";
   answerWindowStatus.style.display = visible ? "block" : "none";
   document.querySelector(".button-zone").style.display = visible ? "grid" : "none";
+  leaveRoomBtn.style.display = visible ? "inline-flex" : "none";
+}
+
+function leaveRoom() {
+  if (events) {
+    events.close();
+    events = null;
+  }
+  roomCode = "";
+  isAcceptingAnswers = false;
+  buttons.forEach((btn) => {
+    btn.disabled = true;
+  });
+  joinCard.style.display = "block";
+  setQuizVisible(false);
+  sendStatus.textContent = "방에서 나왔어요";
 }
 
 function getOrCreateParticipantId() {

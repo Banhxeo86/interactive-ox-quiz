@@ -1,4 +1,7 @@
 ﻿const createRoomBtn = document.getElementById("createRoomBtn");
+const openGuideBtn = document.getElementById("openGuideBtn");
+const closeGuideBtn = document.getElementById("closeGuideBtn");
+const guideModal = document.getElementById("guideModal");
 const teacherRoomCode = document.getElementById("teacherRoomCode");
 const questionInput = document.getElementById("questionInput");
 const updateQuestionBtn = document.getElementById("updateQuestionBtn");
@@ -20,6 +23,12 @@ let roomCode = "";
 let events = null;
 
 createRoomBtn.addEventListener("click", createRoom);
+openGuideBtn.addEventListener("click", () => guideModal.classList.remove("hidden"));
+closeGuideBtn.addEventListener("click", () => guideModal.classList.add("hidden"));
+guideModal.addEventListener("click", (event) => {
+  if (event.target === guideModal) guideModal.classList.add("hidden");
+});
+
 updateQuestionBtn.addEventListener("click", submitQuestion);
 questionInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") submitQuestion();
@@ -79,6 +88,10 @@ function connectEvents() {
   events.addEventListener("animate", (e) => {
     spawnCharacter(JSON.parse(e.data));
   });
+
+  events.addEventListener("presence", (e) => {
+    showPresence(JSON.parse(e.data));
+  });
 }
 
 function setControlsEnabled(enabled) {
@@ -102,6 +115,21 @@ async function postJson(url, payload) {
 function spawnCharacter(event) {
   const actor = getOrCreateActor(event);
   moveActor(actor, event);
+}
+
+function showPresence(event) {
+  const actor = getOrCreateActor({
+    participantId: event.participantId,
+    avatarIndex: event.avatarIndex,
+    startX: event.x,
+    startY: event.y
+  });
+  actor.x = event.x;
+  actor.y = event.y;
+  actor.node.style.left = `${event.x}%`;
+  actor.node.style.top = `${event.y}%`;
+  actor.node.classList.remove("turn", "bounce");
+  actor.node.classList.add("idle");
 }
 
 function getOrCreateActor(event) {

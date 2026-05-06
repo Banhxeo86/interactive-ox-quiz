@@ -12,6 +12,7 @@
         <h1 class="brand-title">OX Live Studio</h1>
         <div class="room-controls">
           <button id="createRoomBtn">새 방 만들기</button>
+          <button id="openGuideBtn" class="sub-btn">설명서</button>
           <span id="teacherRoomCode" class="room-code">방 코드: -</span>
         </div>
         <div class="question-controls">
@@ -36,6 +37,20 @@
         <div id="animLayer" class="anim-layer"></div>
       </main>
       <footer class="teacher-footer">© AI-ON 교과연구회</footer>
+    </div>
+
+    <div id="guideModal" class="guide-modal hidden">
+      <div class="guide-card">
+        <h2>수업 진행 가이드</h2>
+        <ol>
+          <li>새 방 만들기를 눌러 숫자 6자리 방 코드를 생성합니다.</li>
+          <li>학생에게 `/student` 주소와 방 코드를 안내합니다.</li>
+          <li>문제를 입력하고 `문제 적용`을 누릅니다.</li>
+          <li>`시작`을 누르면 학생 응답이 반영됩니다.</li>
+          <li>`마감`을 누르면 응답이 잠기고 집계는 유지됩니다.</li>
+        </ol>
+        <button id="closeGuideBtn" class="sub-btn">닫기</button>
+      </div>
     </div>
 
     <script type="module" src="/teacher.js"></script>
