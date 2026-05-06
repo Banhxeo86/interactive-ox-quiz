@@ -1,0 +1,46 @@
+﻿<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OX Quiz - Teacher</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="teacher-body">
+    <div class="teacher-shell">
+      <header class="admin-panel">
+        <h1>실시간 OX 퀴즈</h1>
+        <div class="room-controls">
+          <button id="createRoomBtn">새 방 만들기</button>
+          <span id="teacherRoomCode" class="room-code">방 코드: -</span>
+        </div>
+        <div class="question-controls">
+          <input id="questionInput" type="text" placeholder="현재 문제를 입력하세요" disabled />
+          <button id="updateQuestionBtn" disabled>문제 적용</button>
+        </div>
+        <div class="session-controls">
+          <button id="startQuizBtn" class="session-btn start" disabled>시작</button>
+          <button id="stopQuizBtn" class="session-btn stop" disabled>마감</button>
+          <span id="sessionStatus" class="session-status">대기 중</span>
+        </div>
+        <p id="currentQuestion" class="current-question"></p>
+        <div class="scoreboard">
+          <div class="score o">O: <span id="countO">0</span></div>
+          <div class="score x">X: <span id="countX">0</span></div>
+        </div>
+      </header>
+
+      <main class="canvas-wrap">
+        <div class="target-marker target-o">O</div>
+        <div class="target-marker target-x">X</div>
+        <div id="centerZone" class="center-zone">
+          <div class="center-text">캐릭터 이동 구역</div>
+        </div>
+        <div id="animLayer" class="anim-layer"></div>
+      </main>
+      <footer class="teacher-footer">© AI-ON 교과연구회</footer>
+    </div>
+
+    <script type="module" src="/teacher.js"></script>
+  </body>
+</html>

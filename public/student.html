@@ -1,0 +1,29 @@
+﻿<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OX Quiz - Student</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="student-body">
+    <div class="student-shell">
+      <div class="join-card" id="joinCard">
+        <h2>방 코드로 입장</h2>
+        <div class="join-row">
+          <input id="roomCodeInput" maxlength="6" placeholder="예: A1B2C3" />
+          <button id="joinRoomBtn">입장</button>
+        </div>
+      </div>
+      <h1 id="studentQuestion" class="student-question">문제를 불러오는 중...</h1>
+      <p id="answerWindowStatus" class="answer-window-status">응답 대기 중</p>
+      <div class="button-zone">
+        <button class="answer-btn o-btn" data-answer="O">O</button>
+        <button class="answer-btn x-btn" data-answer="X">X</button>
+      </div>
+      <p id="sendStatus" class="send-status">선택하면 바로 전송돼요</p>
+    </div>
+
+    <script type="module" src="/student.js"></script>
+  </body>
+</html>

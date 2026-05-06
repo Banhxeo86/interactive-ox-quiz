@@ -1,0 +1,98 @@
+﻿const joinCard = document.getElementById("joinCard");
+const roomCodeInput = document.getElementById("roomCodeInput");
+const joinRoomBtn = document.getElementById("joinRoomBtn");
+const studentQuestion = document.getElementById("studentQuestion");
+const sendStatus = document.getElementById("sendStatus");
+const buttons = document.querySelectorAll(".answer-btn");
+const answerWindowStatus = document.getElementById("answerWindowStatus");
+const participantIdKey = "ox_participant_id";
+const participantId = getOrCreateParticipantId();
+
+let isAcceptingAnswers = false;
+let roomCode = "";
+let events = null;
+
+setQuizVisible(false);
+joinRoomBtn.addEventListener("click", joinRoom);
+roomCodeInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") joinRoom();
+});
+
+buttons.forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    if (!isAcceptingAnswers) {
+      sendStatus.textContent = "지금은 응답할 수 없어요";
+      return;
+    }
+
+    const answer = btn.dataset.answer;
+    const response = await fetch("/student/answer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ answer, participantId, roomCode })
+    });
+
+    if (!response.ok) {
+      sendStatus.textContent = "전송 실패, 다시 시도해 주세요";
+      return;
+    }
+
+    sendStatus.textContent = `${answer} 전송 완료!`;
+    btn.classList.add("pressed");
+    setTimeout(() => btn.classList.remove("pressed"), 160);
+  });
+});
+
+async function joinRoom() {
+  const inputCode = roomCodeInput.value.toUpperCase().trim();
+  if (!inputCode) return;
+
+  try {
+    const check = await fetch(`/room/exists?roomCode=${encodeURIComponent(inputCode)}`);
+    const json = await check.json();
+    if (!check.ok || !json.exists) {
+      sendStatus.textContent = "방 코드를 다시 확인해 주세요";
+      return;
+    }
+    roomCode = inputCode;
+    connectEvents();
+    joinCard.style.display = "none";
+    setQuizVisible(true);
+    sendStatus.textContent = `${roomCode} 방에 입장했어요`;
+  } catch {
+    sendStatus.textContent = "입장 실패, 다시 시도해 주세요";
+  }
+}
+
+function connectEvents() {
+  if (events) events.close();
+  events = new EventSource(`/events?roomCode=${encodeURIComponent(roomCode)}`);
+
+  events.addEventListener("question", (e) => {
+    const { question } = JSON.parse(e.data);
+    studentQuestion.textContent = question;
+  });
+
+  events.addEventListener("status", (e) => {
+    const { isAcceptingAnswers: next } = JSON.parse(e.data);
+    isAcceptingAnswers = next;
+    answerWindowStatus.textContent = next ? "응답 가능 시간입니다" : "응답 마감 상태입니다";
+    buttons.forEach((btn) => {
+      btn.disabled = !next;
+    });
+  });
+}
+
+function setQuizVisible(visible) {
+  studentQuestion.style.display = visible ? "block" : "none";
+  answerWindowStatus.style.display = visible ? "block" : "none";
+  document.querySelector(".button-zone").style.display = visible ? "grid" : "none";
+}
+
+function getOrCreateParticipantId() {
+  const saved = localStorage.getItem(participantIdKey);
+  if (saved) return saved;
+  const created = `p_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  localStorage.setItem(participantIdKey, created);
+  return created;
+}
